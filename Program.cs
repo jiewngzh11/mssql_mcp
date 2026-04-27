@@ -74,7 +74,17 @@ builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 builder.Services.AddSingleton<IKeyRotationService, KeyRotationService>();
 
 // Add connection repository and manager
-builder.Services.AddSingleton<IConnectionRepository, SqliteConnectionRepository>();
+var connectionStoreProvider = Environment.GetEnvironmentVariable("MSSQL_MCP_CONNECTION_STORE_PROVIDER") ?? "Sqlite";
+if (connectionStoreProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+{
+    Log.Information("Using SQL Server connection store provider.");
+    builder.Services.AddSingleton<IConnectionRepository, SqlServerConnectionRepository>();
+}
+else
+{
+    Log.Information("Using SQLite connection store provider.");
+    builder.Services.AddSingleton<IConnectionRepository, SqliteConnectionRepository>();
+}
 builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 
 // Add API key repository and manager
