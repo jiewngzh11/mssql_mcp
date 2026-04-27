@@ -330,9 +330,8 @@ app.Lifetime.ApplicationStarted.Register(() => Log.Information("SQL Server MCP S
 
 if (myTransportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
 {
-    // In stdio mode, we only want to use the MCP server transport
-    var mcpServer = app.Services.GetRequiredService<ModelContextProtocol.Server.IMcpServer>();
-    await mcpServer.RunAsync(CancellationToken.None);
+    // In newer MCP SDK versions, stdio transport is hosted by ASP.NET app lifecycle.
+    await app.RunAsync();
 }
 else
 {
