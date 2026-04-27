@@ -144,14 +144,15 @@ app.UseRouting();
 // Add this in the appropriate location after app.UseRouting()
 app.UseApiKeyAuthentication();
 
-// Add custom middleware for handling content type negotiation
+// Add custom middleware for handling content negotiation
 app.Use(async (context, next) =>
 {
-    // Set proper content type headers if not already set
+    // MCP streamable HTTP may need both JSON and SSE media types.
+    // Only set a default when Accept is missing; do not overwrite client-provided values.
     var acceptHeader = context.Request.Headers.Accept.ToString();
-    if (string.IsNullOrEmpty(acceptHeader) || !acceptHeader.Contains("application/json"))
+    if (string.IsNullOrEmpty(acceptHeader))
     {
-        context.Request.Headers.Accept = "application/json";
+        context.Request.Headers.Accept = "application/json, text/event-stream";
     }
 
     // Ensure Content-Type is set for POST requests
