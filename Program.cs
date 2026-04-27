@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
+using ModelContextProtocol.AspNetCore;
 using mssqlMCP.Configuration;
 
 using mssqlMCP.Extensions;
@@ -30,7 +31,7 @@ var myTransportType = Environment.GetEnvironmentVariable("MSSQL_MCP_TRANSPORT") 
 if (myTransportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
 {
     Log.Information("Using HTTP transport for MCP server.");
-    builder.Services.AddMcpServer().WithHttpTransport()
+    builder.Services.AddMcpServer().WithHttpTransport(McpHttpTransportConfiguration.Configure)
     .WithTools<SqlServerTools>()
     .WithTools<ConnectionManagerTool>()
     .WithTools<SecurityTool>()
@@ -49,7 +50,7 @@ else if (myTransportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
 else
 {
     Log.Error($"Invalid MSSQL_MCP_TRANSPORT: {myTransportType}. Defaulting to HTTP transport.");
-    builder.Services.AddMcpServer().WithHttpTransport()
+    builder.Services.AddMcpServer().WithHttpTransport(McpHttpTransportConfiguration.Configure)
     .WithTools<SqlServerTools>()
     .WithTools<ConnectionManagerTool>()
     .WithTools<SecurityTool>()
@@ -339,6 +340,39 @@ else
     app.MapMcp("/mcp");
     //  app.MapMcpJsonRpc();
     app.Run();
+}
+
+file static class McpHttpTransportConfiguration
+{
+    public static void Configure(HttpServerTransportOptions options)
+    {
+        // Streamable HTTP session idle timeout (SDK default is 2 hours).
+        // Override via MSSQL_MCP_HTTP_IDLE_TIMEOUT_MINUTES (omit or invalid = SDK default).
+        var idleMinutesRaw = Environment.GetEnvironmentVariable("MSSQL_MCP_HTTP_IDLE_TIMEOUT_MINUTES");
+        if (!string.IsNullOrWhiteSpace(idleMinutesRaw) &&
+            int.TryParse(idleMinutesRaw, out var idleMinutes) &&
+            idleMinutes > 0)
+        {
+            if (idleMinutes > 10080) // 7 days cap
+            {
+                Log.Warning("MSSQL_MCP_HTTP_IDLE_TIMEOUT_MINUTES={Minutes} exceeds cap 10080; clamping.", idleMinutes);
+                idleMinutes = 10080;
+            }
+
+            options.IdleTimeout = TimeSpan.FromMinutes(idleMinutes);
+            Log.Information("MCP HTTP IdleTimeout set to {Minutes} minutes", idleMinutes);
+        }
+
+        // Optional: cap idle sessions in memory (SDK default is large).
+        var maxIdleSessionsRaw = Environment.GetEnvironmentVariable("MSSQL_MCP_HTTP_MAX_IDLE_SESSIONS");
+        if (!string.IsNullOrWhiteSpace(maxIdleSessionsRaw) &&
+            int.TryParse(maxIdleSessionsRaw, out var maxIdleSessions) &&
+            maxIdleSessions > 0)
+        {
+            options.MaxIdleSessionCount = maxIdleSessions;
+            Log.Information("MCP HTTP MaxIdleSessionCount set to {Count}", maxIdleSessions);
+        }
+    }
 }
 
 // Global logger factory for static classes
