@@ -22,9 +22,7 @@ RUN mkdir -p /app/Data /app/Logs
 # Copy the published application
 COPY --from=build /app/publish .
 
-# Set environment variables with defaults (these should be overridden at runtime)
-ENV MSSQL_MCP_KEY=""
-ENV MSSQL_MCP_API_KEY=""
+# Set non-sensitive runtime defaults
 ENV MSSQL_MCP_DATA="/app/Data"
 ENV ASPNETCORE_URLS="http://+:3001"
 
