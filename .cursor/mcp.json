@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "mssqlmcp-local": {
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\jiewn\\Documents\\mssql_mcp\\Scripts\\Start-MCP-Local.ps1",
+        "-Transport",
+        "Stdio"
+      ]
+    }
+  }
+}

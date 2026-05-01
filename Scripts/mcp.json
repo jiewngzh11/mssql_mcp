@@ -11,7 +11,7 @@
        
         
   "mssqlmcp": {
-            "url": "http://localhost:3001",            "headers": {
+            "url": "http://localhost:3001/mcp",            "headers": {
                 "Authorization": "Bearer ${input:mssql-server-mcp-api-key}",
                 "Content-Type": "application/json"
             }

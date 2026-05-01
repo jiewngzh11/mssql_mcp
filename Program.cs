@@ -13,20 +13,36 @@ using Serilog;
 using System.ComponentModel;
 
 var builder = WebApplication.CreateBuilder(args);
+var myTransportType = Environment.GetEnvironmentVariable("MSSQL_MCP_TRANSPORT") ??
+                      "Http";
+
+if (myTransportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
+{
+    // Avoid fixed-port conflicts when hosting stdio transport under ASP.NET lifetime.
+    var stdioUrls = Environment.GetEnvironmentVariable("MSSQL_MCP_STDIO_URLS") ?? "http://127.0.0.1:0";
+    builder.WebHost.UseUrls(stdioUrls);
+}
 
 // Configure Serilog
-Log.Logger = new LoggerConfiguration()
+var loggerConfiguration = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .CreateLogger();
+    .Enrich.FromLogContext();
+
+if (myTransportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
+{
+    // Stdio MCP uses stdout for protocol frames. Keep diagnostics on stderr.
+    loggerConfiguration.WriteTo.Console(standardErrorFromLevel: Serilog.Events.LogEventLevel.Verbose);
+}
+else
+{
+    loggerConfiguration.WriteTo.Console();
+}
+
+Log.Logger = loggerConfiguration.CreateLogger();
 
 builder.Host.UseSerilog();
 
 // Add MCP services
-
-var myTransportType = Environment.GetEnvironmentVariable("MSSQL_MCP_TRANSPORT") ??
-                      "Http";
 
 if (myTransportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
 {

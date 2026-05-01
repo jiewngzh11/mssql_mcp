@@ -66,17 +66,6 @@ public class ApiKeyManagementTool
     }
 
     /// <summary>
-    /// List API keys for a user (alias for ListUserApiKeys)
-    /// </summary>
-    /// <param name="userId">The user ID whose keys to list</param>
-    /// <returns>Collection of API keys for the user</returns>
-    [McpServerTool(Name = "mssql_list_user_keys"), Description("List API keys for a user")]
-    public async Task<IEnumerable<ApiKeyResponse>> ListApiKeys(string userId)
-    {
-        return await ListUserApiKeys(userId);
-    }
-
-    /// <summary>
     /// List all API keys (admin only)
     /// </summary>
     /// <returns>Collection of all API keys in the system</returns>

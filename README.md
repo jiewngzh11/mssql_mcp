@@ -193,6 +193,8 @@ Connections are stored in a Sqlite database:
 - **SQLite database**: Located in the `Data/connections.db` file, providing persistent storage
 - **SQLite database override location**: Override the Data directory location with Environment Variable `MSSQL_MCP_DATA`
 
+For local AI-agent usage without a cloud-hosted MCP server, see [Local AI Agent Setup](./Documentation/LocalAgentSetup.md). The local launcher stores encrypted connection data under `%LOCALAPPDATA%\mssqlMCP` and can start the MCP server for VS Code, Cursor, or localhost HTTP clients.
+
 ### Connection Management Tools
 
 The project exposes connection management features through:
